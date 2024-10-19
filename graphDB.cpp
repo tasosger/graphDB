@@ -1,5 +1,6 @@
 #include <fstream>
 #include <iostream>
+#include <cstring>
 
 using namespace std;
 
@@ -24,13 +25,16 @@ struct RelationshipRecord {
     int toNode;
     int nextRel;
     char inUse;
+    char type[20];
 
-    RelationshipRecord(int relId = -1, int from = -1, int to = -1, int next = -1, char usage = 0) {
+    RelationshipRecord(int relId = -1, int from = -1, int to = -1, int next = -1, char usage = 0, const string& relType = "") {
         id = relId;
         fromNode = from;
         toNode = to;
         nextRel = next;
         inUse = usage;
+        strncpy(type, relType.c_str(), sizeof(type) - 1); 
+        type[sizeof(type) - 1] = '\0';
     }
 };
 
@@ -72,9 +76,9 @@ public:
         return nextNodeId++;
     }
 
-    void addRelationship(int fromNodeId, int toNodeId) {
+    void addRelationship(int fromNodeId, int toNodeId, const string& type) {
         int fromNodeOffset = fromNodeId * NODE_RECORD_SIZE;
-        RelationshipRecord rel(nextRelId, fromNodeId, toNodeId, -1, 1);
+        RelationshipRecord rel(nextRelId, fromNodeId, toNodeId, -1, 1, type);
         int relOffset = nextRelId * RELATIONSHIP_RECORD_SIZE;
         relFile.seekp(relOffset, ios::beg);
         relFile.write(reinterpret_cast<char*>(&rel), sizeof(RelationshipRecord));
@@ -123,7 +127,7 @@ public:
                 relFile.read(reinterpret_cast<char*>(&rel), sizeof(RelationshipRecord));
 
                 if (rel.inUse) {
-                    cout << "Node " << nodeId << " is connected to Node " << rel.toNode << endl;
+                    cout << "Node " << nodeId << " is connected to Node " << rel.toNode << " via relationship type: " << rel.type << endl;
                 }
 
                 relId = rel.nextRel;
@@ -172,6 +176,36 @@ public:
         rel.inUse = 0;
         updateRelationship(relId, rel);
     }
+
+
+    void traverseByType(int nodeId, const string& typeFilter) {
+    int nodeOffset = nodeId * NODE_RECORD_SIZE;
+    nodeFile.seekg(nodeOffset, ios::beg);
+    NodeRecord node;
+    nodeFile.read(reinterpret_cast<char*>(&node), sizeof(NodeRecord));
+
+    if (node.inUse) {
+        cout << "Traversing from Node ID: " << nodeId << " with relationship type: " << typeFilter << endl;
+
+        int relId = node.firstRel;
+        while (relId != -1) {
+            int relOffset = relId * RELATIONSHIP_RECORD_SIZE;
+            relFile.seekg(relOffset, ios::beg);
+
+            RelationshipRecord rel;
+            relFile.read(reinterpret_cast<char*>(&rel), sizeof(RelationshipRecord));
+
+            if (rel.inUse && strcmp(rel.type, typeFilter.c_str()) == 0) {
+                cout << "Node " << nodeId << " is connected to Node " << rel.toNode << " via relationship type: " << rel.type << endl;
+            }
+
+            relId = rel.nextRel;
+        }
+    } else {
+        cout << "Node ID " << nodeId << " not found or not in use." << endl;
+    }
+}
+
     
 };
 
@@ -182,8 +216,8 @@ int main() {
     int nodeB = graph.addNode();
     int nodeC = graph.addNode();
 
-    graph.addRelationship(nodeA, nodeB);
-    graph.addRelationship(nodeA, nodeC);
+    graph.addRelationship(nodeA, nodeB, "WORKS_FOR");
+    graph.addRelationship(nodeA, nodeC, "WORKS_FOR");
 
     graph.traverseFromNode(nodeA);
 
