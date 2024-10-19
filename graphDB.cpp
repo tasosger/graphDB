@@ -132,6 +132,47 @@ public:
             cout << "Node ID " << nodeId << " not found or not in use." << endl;
         }
     }
+
+    NodeRecord readNode(int nodeId) {
+        NodeRecord node;
+        int nodeOffset = nodeId * NODE_RECORD_SIZE;
+        nodeFile.seekg(nodeOffset, ios::beg);
+        nodeFile.read(reinterpret_cast<char*>(&node), sizeof(NodeRecord));
+        return node;
+    }
+
+    RelationshipRecord readRelationship(int relId) {
+        RelationshipRecord rel;
+        int relOffset = relId * RELATIONSHIP_RECORD_SIZE;
+        relFile.seekg(relOffset, ios::beg);
+        relFile.read(reinterpret_cast<char*>(&rel), sizeof(RelationshipRecord));
+        return rel;
+    }
+
+    void updateNode(int nodeId, NodeRecord updatedNode) {
+        int nodeOffset = nodeId * NODE_RECORD_SIZE;
+        nodeFile.seekp(nodeOffset, ios::beg);
+        nodeFile.write(reinterpret_cast<char*>(&updatedNode), sizeof(NodeRecord));
+    }
+
+    void updateRelationship(int relId, RelationshipRecord updatedRel) {
+        int relOffset = relId * RELATIONSHIP_RECORD_SIZE;
+        relFile.seekp(relOffset, ios::beg);
+        relFile.write(reinterpret_cast<char*>(&updatedRel), sizeof(RelationshipRecord));
+    }
+
+    void deleteNode(int nodeId) {
+        NodeRecord node = readNode(nodeId);
+        node.inUse = 0;
+        updateNode(nodeId, node);
+    }
+
+    void deleteRelationship(int relId) {
+        RelationshipRecord rel = readRelationship(relId);
+        rel.inUse = 0;
+        updateRelationship(relId, rel);
+    }
+    
 };
 
 int main() {
