@@ -1,7 +1,7 @@
 #include <fstream>
 #include <vector>
 #include <cstring>
-
+#include <iostream>
 
 using namespace std;
 
@@ -35,5 +35,31 @@ struct RelationshipRecord {
         toNode = next;
         nextRel = next;
         inUse = usage;
+    }
+};
+
+
+class GraphDB {
+private:
+    fstream nodeFile;
+    fstream relFile;
+    int nextNodeId = 0;
+    int nextRelId = 0;
+
+public:
+    GraphDB(const string& nodeFilename, const string& relFilename) {
+        nodeFile.open(nodeFilename, ios::in | ios::out | ios::binary | ios::app);
+        if (!nodeFile) {
+            nodeFile.open(nodeFilename, ios::out | ios::binary);
+            nodeFile.close();
+            nodeFile.open(nodeFilename, ios::in | ios::out | ios::binary);
+        }
+
+        relFile.open(relFilename, ios::in | ios::out | ios::binary | ios::app);
+        if (!relFile) {
+            relFile.open(relFilename, ios::out | ios::binary);
+            relFile.close();
+            relFile.open(relFilename, ios::in | ios::out | ios::binary);
+        }
     }
 };
