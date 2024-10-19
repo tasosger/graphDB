@@ -48,14 +48,14 @@ private:
 
 public:
     GraphDB(const string& nodeFilename, const string& relFilename) {
-        nodeFile.open(nodeFilename, ios::in | ios::out | ios::binary | ios::app);
+        nodeFile.open(nodeFilename, ios::in | ios::out | ios::binary );
         if (!nodeFile) {
             nodeFile.open(nodeFilename, ios::out | ios::binary);
             nodeFile.close();
             nodeFile.open(nodeFilename, ios::in | ios::out | ios::binary);
         }
 
-        relFile.open(relFilename, ios::in | ios::out | ios::binary | ios::app);
+        relFile.open(relFilename, ios::in | ios::out | ios::binary );
         if (!relFile) {
             relFile.open(relFilename, ios::out | ios::binary);
             relFile.close();
