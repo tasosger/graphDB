@@ -81,5 +81,7 @@ public:
 
 
 int main() {
-
+    GraphDB graph("nodes.db", "relationships.db");
+    graph.addNode();
+    graph.addNode();
 }
