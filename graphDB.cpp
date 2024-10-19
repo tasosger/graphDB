@@ -77,11 +77,53 @@ public:
         nodeFile.write(reinterpret_cast<char*>(&node), sizeof(NodeRecord));
         return nextNodeId++;
     }
+
+
+    void addRelationship(int fromNodeId, int toNodeId) {
+        int fromNodeOffset = fromNodeId * NODE_RECORD_SIZE;
+        int toNodeOffset = toNodeId * NODE_RECORD_SIZE;
+        RelationshipRecord rel(nextRelId, fromNodeId, toNodeId, -1, 1);
+        int relOffset = nextRelId * RELATIONSHIP_RECORD_SIZE;
+        relFile.seekp(relOffset, ios::beg);
+        relFile.write(reinterpret_cast<char*>(&rel), sizeof(RelationshipRecord));
+
+        nodeFile.seekg(fromNodeOffset, ios::beg);
+        NodeRecord fromNode;
+        nodeFile.read(reinterpret_cast<char*>(&fromNode), sizeof(NodeRecord));
+        if (fromNode.firstRel == -1) {
+            fromNode.firstRel = nextRelId;
+        } else {
+            int curRelId = fromNode.firstRel;
+            while (curRelId != -1) {
+                relFile.seekg(curRelId * RELATIONSHIP_RECORD_SIZE, ios::beg);
+                RelationshipRecord curRel;
+                relFile.read(reinterpret_cast<char*>(&curRel), sizeof(RelationshipRecord));
+
+                if (curRel.nextRel == -1) {
+                    curRel.nextRel = nextRelId;
+                    relFile.seekp(curRelId * RELATIONSHIP_RECORD_SIZE, ios::beg);
+                    relFile.write(reinterpret_cast<char*>(&curRel), sizeof(RelationshipRecord));
+                    break;
+                }
+                curRelId = curRel.nextRel;
+            }
+        }
+        nodeFile.seekp(fromNodeOffset, ios::beg);
+        nodeFile.write(reinterpret_cast<char*>(&fromNode), sizeof(NodeRecord));
+        nextRelId++;
+    }
 };
 
 
 int main() {
     GraphDB graph("nodes.db", "relationships.db");
-    graph.addNode();
-    graph.addNode();
+    
+
+    int nodeA = graph.addNode();
+    int nodeB = graph.addNode();
+    int nodeC = graph.addNode();
+
+    
+    graph.addRelationship(nodeA, nodeB); 
+    graph.addRelationship(nodeA, nodeC);
 }
