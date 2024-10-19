@@ -62,9 +62,24 @@ public:
             relFile.open(relFilename, ios::in | ios::out | ios::binary);
         }
     }
+
+     ~GraphDB() {
+        if (nodeFile.is_open()) nodeFile.close();
+        if (relFile.is_open()) relFile.close();
+    }
+
+
+    int addNode() {
+        NodeRecord node(nextNodeId, -1, -1);
+        int offset = nextNodeId * NODE_RECORD_SIZE;
+
+        nodeFile.seekp(offset, ios::beg);
+        nodeFile.write(reinterpret_cast<char*>(&node), sizeof(NodeRecord));
+        return nextNodeId++;
+    }
 };
 
 
 int main() {
-    
+
 }
