@@ -5,7 +5,7 @@
 using namespace std;
 
 const int NODE_RECORD_SIZE = 9;
-const int RELATIONSHIP_RECORD_SIZE = 17;
+const int RELATIONSHIP_RECORD_SIZE = 37;
 
 struct NodeRecord {
     int id;
